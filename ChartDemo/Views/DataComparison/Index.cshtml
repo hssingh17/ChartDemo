@@ -1,0 +1,261 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Data Comparison</h2>
+
+<div class="row">
+    <div class="col-md-6 text-center"><strong>Database1 Table</strong></div>
+    <div class="col-md-6 text-center"><strong>Database2 Table</strong></div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <table class="table" border="1">
+            <tr>
+                <th>SR#</th>
+                <th>First Name</th>
+                <th>Mobile No.</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>PIN Code</th>
+                <th>Country</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Jame</td>
+                <td>7766558899</td>
+                <td>56, CA</td>
+                <td>CA</td>
+                <td>67GT87</td>
+                <td>USA</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Same</td>
+                <td>776655768</td>
+                <td>56, TR</td>
+                <td>TR</td>
+                <td>67GY65</td>
+                <td>USW</td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-md-6">
+        <table class="table" border="1">
+            <tr>
+                <th>SR#</th>
+                <th>Name</th>
+                <th>Mobile No.</th>
+                <th>Town</th>
+                <th>Address1</th>
+                <th>Address</th>
+                <th>State</th>
+                <th>PIN Code</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <table class="table">
+            <tr>
+                <th class="text-right" style="padding-right:20px">Table 1 Columns</th>
+                <th style="padding-left:20px">Table 2 Columns</th>
+            </tr>
+            <tr>
+                <td class="text-right" style="padding-right:20px; text-align:-webkit-right">
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">First Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Address</option>
+                        <option value="">City</option>
+                        <option value="">PIN Code</option>
+                        <option value="">Country</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Town</option>
+                        <option value="">Address1</option>
+                        <option value="">Address</option>
+                        <option value="">State</option>
+                        <option value="">PIN Code</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right" style="padding-right:20px; text-align:-webkit-right">
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">First Name</option>
+                        <option value="" selected>Mobile No</option>
+                        <option value="">Address</option>
+                        <option value="">City</option>
+                        <option value="">PIN Code</option>
+                        <option value="">Country</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">Name</option>
+                        <option value="" selected>Mobile No</option>
+                        <option value="">Town</option>
+                        <option value="">Address1</option>
+                        <option value="">Address</option>
+                        <option value="">State</option>
+                        <option value="">PIN Code</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right" style="padding-right:20px; text-align:-webkit-right">
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">First Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Address</option>
+                        <option value="">City</option>
+                        <option value="">PIN Code</option>
+                        <option value="">Country</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Town</option>
+                        <option value="">Address1</option>
+                        <option value="">Address</option>
+                        <option value="">State</option>
+                        <option value="">PIN Code</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right" style="padding-right:20px; text-align:-webkit-right">
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">First Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="" selected>Address</option>
+                        <option value="">City</option>
+                        <option value="">PIN Code</option>
+                        <option value="">Country</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Town</option>
+                        <option value="" selected>Address1</option>
+                        <option value="">Address</option>
+                        <option value="">State</option>
+                        <option value="">PIN Code</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right" style="padding-right:20px; text-align:-webkit-right">
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">First Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Address</option>
+                        <option value="" selected>City</option>
+                        <option value="">PIN Code</option>
+                        <option value="">Country</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="" selected>Town</option>
+                        <option value="">Address1</option>
+                        <option value="">Address</option>
+                        <option value="">State</option>
+                        <option value="">PIN Code</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right" style="padding-right:20px; text-align:-webkit-right">
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">First Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Address</option>
+                        <option value="">City</option>
+                        <option value="" selected>PIN Code</option>
+                        <option value="">Country</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-control" style="max-width:250px">
+                        <option value="">Name</option>
+                        <option value="">Mobile No</option>
+                        <option value="">Town</option>
+                        <option value="">Address1</option>
+                        <option value="">Address</option>
+                        <option value="">State</option>
+                        <option value="" selected>PIN Code</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-md-3 text-center" style="margin-top:50px !important">
+        <input type="submit" class="btn btn-info" value="Map Column  >> " />
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-12">
+                <label>
+                    Showing Auto Mapped columns
+                </label>
+            </div>
+            <div class="col-md-12">
+                <table class="table" border="1">
+                    <tr>
+                        <th>SR#</th>
+                        <th>Mobile No</th>
+                        <th>Address</th>
+                        <th>PIN Code</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>7766558899</td>
+                        <td>56, CA</td>
+                        <td>67GT87</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>776655768</td>
+                        <td>56, TR</td>
+                        <td>67GY65</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
