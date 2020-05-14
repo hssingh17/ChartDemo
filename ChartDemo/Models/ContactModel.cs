@@ -12,10 +12,10 @@ namespace ChartDemo.Models
     }
     public class Contact
     {
-        public int Code { get; set; }
+        public long Code { get; set; }
         public string Name { get; set; }
-        public int PaymentMethod { get; set; }
-        public int Country { get; set; }
+        public long PaymentMethod { get; set; }
+        public long Country { get; set; }
         public string Address_1 { get; set; }
         public string Address_2 { get; set; }
     }

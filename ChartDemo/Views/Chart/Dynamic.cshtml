@@ -1,74 +1,7 @@
-﻿@model ChartDemo.Models.PageDataModel;
+﻿@model ChartDemo.Models.ColumnAttributesModel;
 @{
     ViewData["Title"] = "Dynamic";
 }
-
-<h2>Dynamic Graph</h2>
-<form id="frm">
-    <div class="row">
-        @if (Model.Date != null)
-        {
-            <div class="col-md-2">
-                <label>
-                    Select Date
-                </label>
-                @Html.DropDownList("FromDate", new SelectList(Model.Date), "From Date", new { @class = "form-control" })
-            </div>
-        }
-
-        @if (Model.Date != null)
-        {
-            <div class="col-md-2">
-                <label>
-                    Select Date
-                </label>
-                @Html.DropDownList("ToDate", new SelectList(Model.Date), "To Date", new { @class = "form-control" })
-            </div>
-        }
-        <div class="col-md-2">
-            <label>
-                Select Count
-            </label>
-            <select name="Count" id="Count" class="form-control">
-                <option value="0">All</option>
-                <optgroup label="Count"></optgroup>
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <optgroup label="Range"></optgroup>
-
-                <option value="6-10">6-10</option>
-                <option value="16-25">16-25</option>
-                <option value="20-0">Last 20</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label>
-                Select Country
-            </label>
-            @Html.DropDownList("Country", new SelectList(Model.Country, "Code", "Name"), "All", new { @class = "form-control" })
-        </div>
-        <div class="col-md-2">
-            <label>
-                Payment Mode
-            </label>
-            @Html.DropDownList("Country", new SelectList(Model.PaymentMethods, "Code", "Name"), "All", new { @class = "form-control" })
-        </div>
-        <div class="col-md-2">
-            <label> Chart Type</label>
-            <select name="ChartType" id="ChartType" class="form-control">
-                <option value="pie">Pie</option>
-                <option value="bar">Bar</option>
-                <option value="line">Line</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <br />
-            <input type="button" class="btn btn-outline-primary" value="Draw Chart" onclick="getFilteredData();" />
-        </div>
-    </div>
-    <hr />
-</form>
 <style>
     @@import 'https://fonts.googleapis.com/css?family=Open+Sans';
 
@@ -87,28 +20,81 @@
     }
 </style>
 
+<h2>Dynamic Graph</h2>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="acc">
-            <div id="myChart" class="chart--container">
+@if (Model.Status)
+{
+    <form id="frm">
+        <div class="row">
+            <div class="col-md-2">
+                <label> Chart Type</label>
+                <select name="TableId" id="TableType" class="form-control">
+                    <option value="17054">Customer</option>
+                    <option value="17057">Contact</option>
+                    <option value="18099">CRM Contact</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label>
+                    Header Name
+                </label>
+                @Html.DropDownList("HeaderName", new SelectList(Model.Result, "Field", "HeaderName"), new { @class = "form-control" })
+            </div>
+            <div class="col-md-2">
+                <label> Chart Type</label>
+                <select name="ChartType" id="ChartType" class="form-control">
+                    <option value="pie">Pie</option>
+                    <option value="bar">Bar</option>
+                    <option value="line">Line</option>
+                </select>
+            </div>
+            <div class="col-md-2" style="margin-top:5px">
+                <br />
+                <button type="button" class="btn btn-outline-primary" value="Draw Chart" onclick="getFilteredData();">
+                    Draw Chart  <img id="loader" class="img-responsive" src="~/images/straight-loader.gif" style="height:25px; margin-top:-25px;width: 100%; display:none" />
+                </button>
+            </div>
+        </div>
+        <hr />
+    </form>
+
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="acc">
+                <div id="myChart" class="chart--container">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4" id="tableData" style="display:none">
+            <div class="table-responsive">
+                <table class="table" border="1">
+                    <tr>
+                        <th>SR#</th>
+                        <th>Key</th>
+                        <th>Value</th>
+                    </tr>
+                    <tbody class="dybodychartdata">
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <div class="col-md-4" id="tableData" style="display:none">
-        <div class="table-responsive">
-            <table class="table" border="1">
-                <tr>
-                    <th>SR#</th>
-                    <th>ObjectText2</th>
-                    <th>ObjectValue1</th>
-                </tr>
-                <tbody class="dybodychartdata">
-                </tbody>
-            </table>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <div class="alert-danger">
+                Error occured while calling customer api.
+                Error : @Model.Message
+            </div>
         </div>
     </div>
-</div>
+}
+
+
 
 
 
@@ -165,36 +151,9 @@
         $("#tableData").show();
     }
     $(document).ready(function () {
-        getchartdata();
-        $("#FromDate").on("change", function () {
-            if ($("#ToDate").val().length === 0) {
-                $("#ToDate").val($("#FromDate").val())
-            }
-        })
-        $("#ToDate").on("change", function () {
-            if ($("#FromDate").val().length === 0) {
-                $("#FromDate").val($("#ToDate").val())
-            }
-        })
     });
 
     ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9", "b55b025e438fa8a98e32482b5f768ff5"];
-    function getchartdata() {
-
-        $.ajax({
-            url: "/chart/getchartdata",
-            type: "GET",
-            contenType: 'application/json; charset=utf-8',
-            success: function (resp) {
-                Data = resp;
-
-            },
-            error: function (responce) {
-                console.log(responce.statusText);
-                DispalyPop(false, 'An error ocured while processing!!');
-            }
-        });
-    };
     function drawBarChart(barData, title, elementId) {
         var minVal = 0;
         var maxVal = 0;
@@ -390,6 +349,7 @@
 
     function getFilteredData() {
         var data = $("#frm").serializeArray();
+        $("#loader").show();
         $.ajax({
             url: "/chart/getFilteredData",
             type: "POST",
@@ -397,6 +357,7 @@
             contenType: 'application/json; charset=utf-8',
             success: function (resp) {
                 console.log(resp);
+                $("#loader").hide();
                 if (resp.status) {
                     let i = 0;
                     let count = resp.data.length;
@@ -457,12 +418,13 @@
 
                 }
                 else {
-                    alert("Unable to filter data!!");
+                    alert("Unable to filter data!!\nError: " + resp.data);
                 }
             },
             error: function (responce) {
                 console.log(responce.statusText);
                 alert('An error ocured while processing!!');
+                $("#loader").hide();
             }
         });
     }

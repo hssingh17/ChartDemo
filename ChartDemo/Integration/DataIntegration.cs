@@ -31,6 +31,17 @@ namespace ChartDemo.Integration
             }
             return null;
         }
+        public ColumnAttributesModel GetTableAttributes(long TableId)
+        {
+            string path = $"/api/FieldDefinition/GetColumnAttributes?tableID={TableId}";
+            HttpResponseMessage response = client.GetAsync(path).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response.Content.ReadAsAsync<ColumnAttributesModel>().Result;
+            }
+            return null;
+        }
 
         public DropdownModel GetDropdownValues(long TableId)
         {
@@ -48,14 +59,36 @@ namespace ChartDemo.Integration
             }
             return countryModel;
         }
-        public ContactModel GetTableData(long TableId)
+        public CustomerModel GetCustomerModelTableData(long TableId)
         {
             string path = $"/api/DataObject/getLatestDataJSR?tableID={TableId}";
             HttpResponseMessage response = client.GetAsync(path).Result;
 
             if (response.IsSuccessStatusCode)
             {
-                return response.Content.ReadAsAsync<ContactModel>().Result;
+                return response.Content.ReadAsAsync<CustomerModel>().Result;
+            }
+            return null;
+        }
+        public CustomerModel GetContactTableData(long TableId)
+        {
+            string path = $"/api/DataObject/getLatestDataJSR?tableID={TableId}";
+            HttpResponseMessage response = client.GetAsync(path).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response.Content.ReadAsAsync<CustomerModel>().Result;
+            }
+            return null;
+        }
+        public CustomerModel GetCRMContactTableData(long TableId)
+        {
+            string path = $"/api/DataObject/getLatestDataJSR?tableID={TableId}";
+            HttpResponseMessage response = client.GetAsync(path).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response.Content.ReadAsAsync<CustomerModel>().Result;
             }
             return null;
         }

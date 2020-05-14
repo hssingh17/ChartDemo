@@ -2,32 +2,24 @@
 using ChartDemo.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace ChartDemo.Controllers
 {
     public class ChartController : Controller
     {
-        DataIntegration Integration = new DataIntegration();
+        private readonly DataIntegration Integration = new DataIntegration();
         public IHostingEnvironment Env { get; }
-        public List<ChartObject> Chart
-        {
-            get
-            {
-                string path = Env.WebRootPath + @"\Data.json";
-                return ChartObject.GetList(path);
-            }
-        }
-        public List<ChartObject> Charts { get; set; }
+
         PageDataModel dataModel = new PageDataModel();
         public ChartController(IHostingEnvironment env)
         {
             Env = env;
         }
+        #region Static Graph
         public IActionResult Area()
         {
             return View();
@@ -40,154 +32,121 @@ namespace ChartDemo.Controllers
         {
             return View();
         }
+        #endregion
         public IActionResult Dynamic()
         {
             dataModel = new PageDataModel();
-
-            var countryData = Integration.GetDropdownValues(2020);
-            if (countryData.Status)
-            {
-                dataModel.Country = countryData.Result;
-            }
-            else
-            {
-                ViewBag.CountryError = countryData.Message;
-            }
-            var paymenyData = Integration.GetDropdownValues(17055);
-            if (paymenyData.Status)
-            {
-                dataModel.PaymentMethods = paymenyData.Result;
-            }
-            else
-            {
-                ViewBag.CountryError = paymenyData.Message;
-            }
-
-            return View(dataModel);
-        }
-
-        [HttpGet]
-        public JsonResult GetChartData()
-        {
-            string path = Env.WebRootPath + @"\Data.json";
-
-            return Json(ChartObject.GetList(path));
+            var customerAttri = Integration.GetTableAttributes(17054);
+            customerAttri.Result = customerAttri.Result.Where(h => !string.IsNullOrEmpty(h.HeaderName)).ToList();
+            return View(customerAttri);
         }
 
         [HttpPost]
-        public JsonResult GetFilteredData(Serarch searchModel)
+        public JsonResult GetFilteredData(long TableId, string HeaderName)
         {
             try
             {
-                var customerData = Integration.GetTableData(17057);
-                if (customerData.Status)
+                if (TableId == 17054) // Customer Table
                 {
-                    var cust = customerData.Result
-                        .Where(d => (d.PaymentMethod == searchModel.Payment || searchModel.Payment == 0) && (d.Country == searchModel.Country || searchModel.Country == 0) && !string.IsNullOrEmpty(d.Name))
-                        .ToList();
-                    var summryData = cust.GroupBy(g => new { g.Name })
-                                        .Select(s => new DropdownValues { Code = s.Count(), Name = s.Key.Name })
-                                        .ToList();
-                    var dd = new List<DropdownValues>();
-                    for (int d = 0; d < summryData.Count; d++)
+                    CustomerModel data = Integration.GetCustomerModelTableData(TableId);
+                    data.Result = data.Result.Where(d => d.DataObjectID > 0).ToList();
+                    if (data.Status)
                     {
-                        dd.Add(new DropdownValues { Code = summryData[d].Code, Name = summryData[d].Name });
+                        List<DropdownValues> filterdata = new List<DropdownValues>();
+
+                        Type t = typeof(Customer);
+
+                        var ptype = t.GetProperty(HeaderName)?.PropertyType?.Name;
+
+                        ParameterExpression p = Expression.Parameter(typeof(Customer), "p");
+
+                        if (ptype == "Int64")
+                        {
+                            var longExpression = Expression.Lambda<Func<Customer, long>>(Expression.Property(p, HeaderName), p);
+                            filterdata = data.Result.AsQueryable().GroupBy(longExpression)
+                            .Select(s => new DropdownValues { Code = s.Count(), Name = s.Key.ToString() })
+                            .ToList();
+                        }
+                        else if (ptype == "String")
+                        {
+                            var strExpression = Expression.Lambda<Func<Customer, string>>(Expression.Property(p, HeaderName), p);
+                            filterdata = data.Result.AsQueryable().GroupBy(strExpression)
+                            .Select(s => new DropdownValues { Code = s.Count(), Name = s.Key.ToString() })
+                            .ToList();
+                        }
+                        else if (ptype == "long")
+                        {
+                            var intExpression = Expression.Lambda<Func<Customer, int>>(Expression.Property(p, HeaderName), p);
+                            filterdata = data.Result.AsQueryable().GroupBy(intExpression)
+                            .Select(s => new DropdownValues { Code = s.Count(), Name = s.Key.ToString() })
+                            .ToList();
+                        }
+                        else
+                        {
+                            return Json(new { status = false, Data = "This property is not mapped!" });
+                        }
+
+                        var dd = new List<DropdownValues>();
+                        for (int d = 0; d < filterdata.Count; d++)
+                        {
+                            dd.Add(new DropdownValues { Code = filterdata[d].Code, Name = filterdata[d].Name });
+                        }
+                        if (HeaderName == "Country")
+                        {
+                            var q = Integration.GetDropdownValues(2020);
+                            if (q.Status)
+                            {
+                                for (int w = 0; w < dd.Count; w++)
+                                {
+                                    dd[w].Name = q.Result.Find(e => e.Code.ToString() == dd[w].Name)?.Name;
+                                }
+                            }
+                        }
+                        return Json(new { status = true, Data = dd });
                     }
-                    return Json(new { status = true, Data = dd });
+                    return Json(new { status = false, Data = data.Message });
                 }
-                return Json(new { status = true, Data = customerData.Message });
+                else if (TableId == 17057) // Contact Table
+                {
+                    CustomerModel data = Integration.GetContactTableData(TableId);
+                    if (data.Status)
+                    {
+                        var summryData = data.Result.GroupBy(g => new { HeaderName })
+                                            .Select(s => new DropdownValues { Code = s.Count(), Name = s.Key.HeaderName })
+                                            .ToList();
+                        var dd = new List<DropdownValues>();
+                        for (int d = 0; d < summryData.Count; d++)
+                        {
+                            dd.Add(new DropdownValues { Code = summryData[d].Code, Name = summryData[d].Name });
+                        }
+                        return Json(new { status = true, Data = dd });
+                    }
+                    return Json(new { status = true, Data = data.Message });
+                }
+                else if (TableId == 18099) // CRM Contact
+                {
+                    CustomerModel data = Integration.GetCRMContactTableData(TableId);
+                    if (data.Status)
+                    {
+                        var summryData = data.Result.GroupBy(g => new { HeaderName })
+                                            .Select(s => new DropdownValues { Code = s.Count(), Name = s.Key.HeaderName })
+                                            .ToList();
+                        var dd = new List<DropdownValues>();
+                        for (int d = 0; d < summryData.Count; d++)
+                        {
+                            dd.Add(new DropdownValues { Code = summryData[d].Code, Name = summryData[d].Name });
+                        }
+                        return Json(new { status = true, Data = dd });
+                    }
+                    return Json(new { status = true, Data = data.Message });
+                }
+                return Json(false);
             }
             catch (Exception ex)
             {
 
-                throw;
+                return Json(new { status = false, Data = ex.Message });
             }
         }
-
-        public JsonResult GetFilteredData_Old(Serarch searchModel)
-        {
-            try
-            {
-                //Charts = Integration.GetTableData(17057).Result;
-                if (searchModel.Country == null)
-                {
-                    var dates = Charts.Where(d => (d.DateCreated >= searchModel.FromDate && d.DateCreated <= searchModel.ToDate) || searchModel.FromDate == null);
-
-                    if (searchModel.Count.Contains("-"))
-                    {
-                        var cn = searchModel.Count.Split('-');
-                        int st = Convert.ToInt32(cn[0]) - 1;
-                        int lst = Convert.ToInt32(cn[1]) - 1;
-                        if (lst == 0)
-                        {
-                            lst = Charts.Count;
-                            st = lst - st;
-                        }
-                        dates = dates.Skip(st).Take(lst)
-                            .GroupBy(g => new { g.ObjectText2 })
-                            .Select(s => new ChartObject { ObjectValue1 = s.Sum(d => d.ObjectValue1), ObjectText2 = s.Key.ObjectText2 });
-                    }
-                    else
-                    {
-                        int st = Convert.ToInt32(searchModel.Count);
-                        if (st == 0)
-                        {
-                            st = Charts.Count;
-                        }
-                        dates = dates.Take(st)
-                            .GroupBy(g => new { g.ObjectText2 })
-                            .Select(s => new ChartObject { ObjectValue1 = s.Sum(d => d.ObjectValue1), ObjectText2 = s.Key.ObjectText2 });
-                    }
-                    return Json(new { status = true, Data = dates });
-                }
-                else
-                {
-                    var dates = Charts.ToList();
-                    var dd = new List<ChartObject>();
-                    for (int d = 0; d < dates.Count(); d++)
-                    {
-                        dd.Add(new ChartObject { ObjectValue1 = dates[d].ObjectValue1, ObjectText2 = dates[d].DateCreated.ToString("dd/MM/yyyy") });
-                    }
-                    return Json(new { status = true, Data = dd });
-                }
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-        }
-    }
-
-
-    public class ChartObject
-    {
-        public static List<ChartObject> GetList(string path)
-        {
-            if (File.Exists(path))
-            {
-                string JsonData = File.ReadAllText(path);
-                return JsonConvert.DeserializeObject<List<ChartObject>>(JsonData);
-            }
-            return new List<ChartObject> { new ChartObject { ObjectText2 = "Test", ObjectValue1 = 1000 } };
-        }
-        public long DataObjectID { get; set; }
-        public long TableID { get; set; }
-        public bool Status { get; set; }
-        public bool Inactive { get; set; }
-        public DateTime DateCreated { get; set; }
-        public string ObjectText2 { get; set; }
-        public long ObjectValue1 { get; set; }
-        public long Code { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class Serarch
-    {
-        public DateTime? FromDate { get; set; }
-        public DateTime? ToDate { get; set; }
-        public string Count { get; set; }
-        public long Country { get; set; }
-        public long Payment { get; set; }
     }
 }
