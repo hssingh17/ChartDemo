@@ -107,7 +107,9 @@ else
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
 <script>
     let rowData = [];
-    let fltr = "";
+    let xAxislabel = "";
+    let yAxisCount = "";
+
     function getTableAttr() {
         $("#myChart").hide();
         $("#tableData").hide(); let id = $("#TableId").val();
@@ -138,24 +140,49 @@ else
         });
 
     }
-
-    function modifyData(column) {
+    function calculateYx(filteredData) {
+        let newfilteredData = [];
+        for (let a = 0; a < filteredData.length; a++) {
+            let name = filteredData[a]["name"];
+            let filt = rowData.filter(e => e[xAxislabel] === name);
+            let grouped = GetGroupData(yAxisCount, filt);
+            newfilteredData.push({
+                "code": grouped[0].Value,
+                "name": name
+            })
+        }
+        return newfilteredData;
+    }
+    function GetGroupData(column, data) {
         let replacedcol = column;
-        let funData = rowData;
+        let funData = data;
         if (column.includes(' ')) {
-            var regex = new RegExp(column, 'g');
-
-            replacedcol = column.replace(' ', '');
-            let n1 = JSON.stringify(funData).replace(regex, replacedcol);
+            var regexData = new RegExp(column, 'g');
+            var regexCol = new RegExp(' ', 'g');
+            replacedcol = column.replace(regexCol, '');
+            let n1 = JSON.stringify(funData).replace(regexData, replacedcol);
+            funData = JSON.parse(n1);
+            column = replacedcol;
+        }
+        if (column.includes('-')) {
+            var regexData = new RegExp(column, 'g');
+            var regexCol = new RegExp('-', 'g');
+            replacedcol = column.replace(regexCol, '');
+            let n1 = JSON.stringify(funData).replace(regexData, replacedcol);
             funData = JSON.parse(n1);
         }
         var linq = Enumerable.From(funData);
-        const grouped = linq.GroupBy("$." + replacedcol, "",
-            "k,e => { " + replacedcol + ":k, Value:e.Sum('$.Value|1') }").ToArray();
+        return linq.GroupBy("$." + replacedcol, "", "k,e => { " + replacedcol + ":k, Value:e.Sum('$.Value|1') }").ToArray();
+    }
+    function modifyData(column) {
+        let replacedcol = column;
+        if (column.includes(' ')) {
+            replacedcol = column.replace(' ', '');
+        }
         let filteredData = [];
+        let grouped = GetGroupData(column, rowData);
         for (let a = 0; a < grouped.length; a++) {
             if (replacedcol.toLowerCase().includes('date')) {
-
                 filteredData.push({
                     "code": grouped[a].Value,
                     "name": moment(grouped[a][replacedcol]).format('DD MMM YY')
@@ -168,7 +195,10 @@ else
                 })
             }
         }
-        console.log(filteredData);
+        //  console.log(filteredData);
+        if ($("#ChartType").val() !== "pie") {
+            filteredData =    calculateYx(filteredData);
+        }
         return filteredData;
     }
 
@@ -201,8 +231,9 @@ else
     }
 
     function renderChart() {
-        var fltr = $("#XAxis").val();
-        const filteredData = modifyData(fltr);
+        xAxislabel = $("#XAxis").val();
+        yAxisCount = $("#YAxis").val();
+        const filteredData = modifyData(xAxislabel);
         let i = 0;
         let count = filteredData.length;
 
@@ -238,7 +269,7 @@ else
             }
 
             barData = { amountArray: amountArray, dateArray: dateArray };
-            drawBarChart(barData, 'Data from API', 'myChart', fltr);
+            drawBarChart(barData, 'Data from API', 'myChart', yAxisCount, xAxislabel);
         }
         if (chrtype === "line") {
             var valueSeries = [];
@@ -256,7 +287,7 @@ else
                 XTitle: Data.X,
                 XAxisLabels: XAxisLabels
             }
-            drowLine(lineDataobj, 'myChart', fltr);
+            drowLine(lineDataobj, 'myChart', yAxisCount, xAxislabel);
         }
     }
 </script>
@@ -313,7 +344,7 @@ else
         $("#tableData").show();
     }
     ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9", "b55b025e438fa8a98e32482b5f768ff5"];
-    function drawBarChart(barData, title, elementId, titleY) {
+    function drawBarChart(barData, title, elementId, titleY, titleX) {
         var minVal = 0;
         var maxVal = 0;
         for (var i = 0; i < barData.amountArray.length; i++) {
@@ -416,7 +447,7 @@ else
                         lineWidth: '1px'
                     },
                     "label": {
-                        "text": titleY,
+                        "text": titleX,
                         "font-family": "arial",
                         "bold": true,
                         "font-size": "16px",
@@ -500,7 +531,7 @@ else
         });
     }
 
-    function drowLine(lineData, elementId, titleY) {
+    function drowLine(lineData, elementId, titleY, titleX) {
         var min = Math.min.apply(null, lineData.ValueSeries);
 
         var max = Math.max.apply(null, lineData.ValueSeries);
@@ -521,7 +552,7 @@ else
             },
             "scale-x": {
                 "label": {
-                    "text": titleY,
+                    "text": titleX,
                 },
                 "labels": lineData.XAxisLabels
             },
