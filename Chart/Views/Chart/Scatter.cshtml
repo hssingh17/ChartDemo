@@ -1,0 +1,362 @@
+﻿
+@{
+    ViewData["Title"] = "Scatter";
+}
+
+
+<style>
+    .grid {
+        display: grid;
+        grid-template-columns: 1fr 150px;
+        grid-column-gap: 1.5rem;
+        align-items: center;
+    }
+
+    .chart {
+        min-height: 852px;
+    }
+
+    .countries {
+        width: 150px;
+        max-height: 852px;
+        overflow: auto;
+        font-size: 12px;
+        border: 1px solid #ddd;
+    }
+
+    label {
+        margin: 0;
+        padding: 4px 6px;
+        display: flex;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    input[type=checkbox] {
+        margin: 0 4px 0 0;
+        width: 17px;
+        height: 17px;
+    }
+
+    .zc-body {
+        background-color: #fff;
+    }
+
+    .zc-ref {
+        display: none;
+    }
+</style>
+<br />
+<br />
+<br />
+<div class="grid">
+
+    <div id="myChart" class="chart">
+    </div>
+
+    <div id="countriesChart" class="countries"></div>
+
+</div>
+<script>
+    ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9", "b55b025e438fa8a98e32482b5f768ff5"];
+    // DEFINE CHART LOCATIONS (IDS)
+    // -----------------------------
+    // Main chart render location
+    var chartId = 'myChart';
+
+
+    // VARS
+    // -----------------------------
+    var inputEl, labelEl, nrVal;
+    var aData = [];
+    var aDataTxt = [];
+    var iLineX = 70;
+    var iLineY = 80;
+    var LABEL = document.createElement('label');
+    var INPUT = document.createElement('input');
+
+
+    // DOM ELEMENTS
+    // -----------------------------
+    var chkList = document.querySelector('#countriesChart');
+    var sidebarEls;
+
+
+    // CHART DATA
+    // -----------------------------
+    var aCountries = ['Argentina', 'Australia', 'Austria', 'Belgium', 'Bolivia', 'Brazil', 'Canada', 'Chile', 'China', 'Croatia', 'Denmark', 'Egypt', 'Finland', 'France', 'Germany', 'Greece', 'Iceland', 'India', 'Indonesia', 'Italy', 'Japan', 'Luxembourg', 'Mexico', 'Netherlands', 'Norway', 'Peru', 'Portugal', 'Romania', 'Spain', 'Switzerland', 'Thailand', 'United Kingdom', 'United States', 'Venezuela'];
+
+    // Build sidebar elements
+    aCountries.forEach(function (country) {
+        var id = country.replace(/[^a-zA-Z]/gi, '').toLowerCase();
+        // Create label
+        labelEl = LABEL.cloneNode();
+        labelEl.id = 'lbl' + id;
+
+        // Create Input
+        inputEl = INPUT.cloneNode();
+        inputEl.setAttribute('id', id);
+        inputEl.setAttribute('type', 'checkbox');
+        inputEl.setAttribute('data-jsref', 'country-input');
+        inputEl.checked = false;
+        labelEl.appendChild(inputEl);
+
+        // Add label text
+        labelEl.insertAdjacentHTML('beforeend', country);
+
+        // Add label to DOM
+        chkList.appendChild(labelEl);
+    });
+    // Store # of countries
+    nrVal = aCountries.length;
+    // Store new sidebar els
+    sidebarEls = Array.prototype.slice.call(document.querySelectorAll('[data-jsref="country-input"]'));
+
+    for (var i = 0; i < nrVal; i++) {
+        var r1 = rand(iLineX - 30, iLineX + 30);
+        var r2 = rand(iLineY - 20, iLineY + 20);
+        aData.push([r1, r2]);
+        aDataTxt.push(aCountries[i].replace(/[^a-zA-Z]/gi, '').toLowerCase());
+    }
+
+
+    // CHART CONFIG
+    // -----------------------------
+
+    var chartConfig = {
+        graphset: [{
+            type: 'scatter',
+            backgroundColor: '#FFF',
+            title: {
+                text: 'Life Expectancy and Self-reported Health (OECD)',
+                fontSize: 22,
+                align: 'left',
+                paddingLeft: 10
+            },
+            subtitle: {
+                text: 'Self-reported Health (scale from 0-100)',
+                fontSize: 12,
+                fontWeight: 'normal',
+                fontStyle: 'italic',
+                padding: '5 0 10 10',
+                align: 'left'
+            },
+            scaleX: {
+                offset: 40,
+                step: 10,
+                lineWidth: 0,
+                label: {
+                    text: 'Self-reported Health (scale from 0-100)',
+                    fontColor: '#000',
+                    fontWeight: 'normal',
+                    fontSize: 11,
+                    paddingTop: 15
+                },
+                markers: [{
+                    type: 'line',
+                    lineStyle: 'dotted',
+                    lineColor: '#000',
+                    text: 'low<br><br>high',
+                    valueRange: true,
+                    label: {
+                        offsetX: -42,
+                        paddingBottom: 40,
+                        fontWeight: 'bold'
+                    },
+                    range: [iLineX]
+                }],
+                item: {
+                    color: '#000',
+                    fontWeight: 'normal',
+                    fontSize: 11
+                },
+                guide: {
+                    visible: false
+                },
+                tick: {
+                    visible: true
+                }
+            },
+            tooltip: {
+                text: '<span style="font-size:17px;font-weight:bold;">%data-countries</span><br><br>Life expectancy: <b>%node-value</b> years<br>Self-reported health: <b>%scale-key-value</b>',
+                align: 'left',
+                padding: 10,
+                fontSize: 12
+            },
+            plot: {
+                dataCountries: aCountries,
+                dataTxt: aDataTxt,
+                animation: {
+                    speed: 400,
+                    effect: 1,
+                    method: 0,
+                    sequence: 0
+                }
+            },
+            scaleY: {
+                offset: 40,
+                minValue: 'auto',
+                lineWidth: 0,
+                label: {
+                    text: 'Life Expectancy',
+                    fontColor: '#000',
+                    fontWeight: 'normal',
+                    fontSize: 11,
+                    paddingRight: 1
+                },
+                markers: [{
+                    type: 'line',
+                    lineStyle: 'dotted',
+                    lineColor: '#000',
+                    text: 'high<br><br>low',
+                    label: {
+                        offsetY: 23,
+                        paddingLeft: 20,
+                        fontWeight: 'bold'
+                    },
+                    range: [iLineY]
+                }],
+                item: {
+                    color: '#000',
+                    fontWeight: 'normal',
+                    fontSize: 11
+                },
+                guide: {
+                    visible: false
+                },
+                tick: {
+                    visible: true
+                }
+            },
+            series: [{
+                values: aData,
+                hoverMarker: {
+                    visible: false
+                },
+                valueBox: {
+                    text: '%data-countries',
+                    fontSize: 11,
+                    fontWeight: 'bold',
+                    color: '#000',
+                    offsetY: 45,
+                    jsRule: 'plotRule(2)'
+                },
+                tooltip: {
+                    jsRule: 'plotRule(1)'
+                },
+                marker: {
+                    borderWidth: 1,
+                    borderColor: '#FFF',
+                    shadowDistance: 3,
+                    fillType: 'linear',
+                    fillAngle: 45,
+                    size: 20,
+                    jsRule: 'plotRule(0)'
+                }
+            }]
+        }]
+    };
+
+
+    // RENDER CHARTS
+    // -----------------------------
+    zingchart.render({
+        id: chartId,
+        width: '100%',
+        height: '100%',
+        output: 'svg',
+        data: chartConfig,
+        events: {
+            load: loaded
+        }
+    });
+
+
+    // EVENTS
+    // -----------------------------
+
+    sidebarEls.forEach(function (el) {
+        el.addEventListener('click', handleSidebarClick);
+    });
+
+
+    // HELPER FNS
+    // -----------------------------
+
+    function handleSidebarClick(e) {
+        zingchart.exec(chartId, 'update', {
+            graphid: 0
+        });
+    }
+
+    // Chart loaded event
+    function loaded() {
+        setInterval(function () {
+            update();
+        }, 2500);
+    }
+
+    // Set rule
+    function plotRule(p, t) {
+        var obj = {},
+            color = '',
+            fontColor = '#FFF';
+        // Get # of checked checkboxes
+        var iChecked = sidebarEls.filter(function (el) {
+            return el.checked
+        }).length;
+
+        // Get target sidebar label
+        var label = document.querySelector('#lbl' + p["data-txt"]);
+        var input = document.querySelector('#' + p["data-txt"]);
+
+        if (t === '0' || t === '1') {
+            if (p.value <= iLineY && p.key <= iLineX) {
+                color = '#D01C8B #821257';
+            } else if (p.value > iLineY && p.key <= iLineX) {
+                color = '#B8E186 #799358';
+                fontColor = '#000';
+            } else if (p.value <= iLineY && p.key > iLineX) {
+                color = '#F1B6DA #A37C94';
+                fontColor = '#000';
+            } else if (p.value > iLineY && p.key > iLineX) {
+                color = '#4DAC26 #2B5E15';
+            }
+
+            // Set background color
+            label.style.backgroundColor = color.split(' ')[0];
+
+            obj['background-color'] = color;
+            obj['font-color'] = fontColor;
+
+            if (t === '0') {
+                obj['shadow'] = input.checked;
+                obj['border-color'] = input.checked ? '#666' : '#fff';
+                obj['size'] = input.checked ? 22 : 20;
+                obj['alpha'] = input.checked ? 1 : (iChecked === 0 ? 0.75 : 0.05);
+            }
+        } else {
+            obj['visible'] = input.checked;
+        }
+        return obj;
+    };
+
+    // Random
+    function rand(min, max) {
+        return Math.round(min + (max - min) * Math.random());
+    }
+
+    // Update chart
+    function update() {
+        for (var i = 0; i < nrVal; i++) {
+            aData[i][0] += rand(-2, 2);
+            aData[i][1] += rand(-2, 2);
+        }
+        zingchart.exec(chartId, 'setseriesvalues', {
+            plotindex: 0,
+            values: aData
+        });
+    };
+</script>

@@ -1,0 +1,549 @@
+﻿@model ChartDemo.Models.ColumnAttributesModel;
+@{
+    ViewData["Title"] = "Dynamic";
+}
+<style>
+    @@import 'https://fonts.googleapis.com/css?family=Open+Sans';
+
+    .zc-body {
+        background-color: #2B313B;
+    }
+
+    .chart--container {
+        height: 100%;
+        width: 100%;
+        min-height: 530px;
+    }
+
+    .zc-ref {
+        display: none;
+    }
+</style>
+
+<h2>Dynamic Graph</h2>
+
+@if (Model.Status)
+{
+    <form id="frm">
+        <div class="row">
+            <div class="col-md-2">
+                <label> Chart Type</label>
+                <select name="TableId" id="TableType" class="form-control">
+                    <option value="17054">Customer</option>
+                    <option value="17057">Contact</option>
+                    <option value="18099">CRM Contact</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label>
+                    Header Name
+                </label>
+                @Html.DropDownList("HeaderName", new SelectList(Model.Result, "Field", "HeaderName"), new { @class = "form-control" })
+            </div>
+            <div class="col-md-2">
+                <label> Chart Type</label>
+                <select name="ChartType" id="ChartType" class="form-control">
+                    <option value="pie">Pie</option>
+                    <option value="bar">Bar</option>
+                    <option value="line">Line</option>
+                </select>
+            </div>
+            <div class="col-md-2" style="margin-top:5px">
+                <br />
+                <button type="button" class="btn btn-outline-primary" value="Draw Chart" onclick="getFilteredData();">
+                    Draw Chart  <img id="loader" class="img-responsive" src="~/images/straight-loader.gif" style="height:25px; margin-top:-25px;width: 100%; display:none" />
+                </button>
+            </div>
+        </div>
+        <hr />
+    </form>
+
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="acc">
+                <div id="myChart" class="chart--container">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4" id="tableData" style="display:none">
+            <div class="table-responsive">
+                <table class="table" border="1">
+                    <tr>
+                        <th>SR#</th>
+                        <th>Key</th>
+                        <th>Value</th>
+                    </tr>
+                    <tbody class="dybodychartdata">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <div class="alert-danger">
+                Error occured while calling customer api.
+                Error : @Model.Message
+            </div>
+        </div>
+    </div>
+}
+
+
+
+
+
+<script>
+    let Data = [];
+
+    function draw() {
+        getFilteredData();
+        let chrtype = $("#ChartType").val();
+        let i = 0;
+        let count = ($("#Count").val());
+        if (count.includes('-')) {
+            i = parseInt(count.split('-')[0]) - 1;
+            count = parseInt(count.split('-')[1]);
+            if (count === 0) {
+                count = Data.length;
+                i = count - i;
+            }
+        }
+        count = parseInt(count);
+        if (count === 0) {
+            count = Data.length;
+        }
+        $(".dybodychartdata").html(null);
+        if (count > Data.length) {
+            count = Data.length;
+        }
+        if (chrtype === "pie") {
+            let mySeries = [];
+            for (let a = i; a < count; a++) {
+                mySeries.push({
+                    "values": [(Data[a].code)],
+                    "text": [Data[a].name]
+                })
+                let tr = '<tr><th>' + (a + 1) + '</th><th>' + Data[a].name + '</th><th>' + Data[a].code + '</th></tr>';
+                $(".dybodychartdata").append(tr);
+            }
+            pieGraph(mySeries, 'Data from API', 'myChart');
+        }
+        if (chrtype === "bar") {
+            let barData = [];
+            let amountArray = [];
+            let dateArray = [];
+            for (let a = i; a < count; a++) {
+                amountArray.push(Data[a].code);
+                dateArray.push(Data[a].name);
+                let tr = '<tr><th>' + (a + 1) + '</th><th>' + Data[a].name + '</th><th>' + Data[a].code + '</th></tr>';
+                $(".dybodychartdata").append(tr);
+            }
+
+            barData = { amountArray: amountArray, dateArray: dateArray };
+            drawBarChart(barData, 'Data from API', 'myChart');
+        }
+        $("#tableData").show();
+    }
+    $(document).ready(function () {
+    });
+
+    ZC.LICENSE = ["569d52cefae586f634c54f86dc99e6a9", "b55b025e438fa8a98e32482b5f768ff5"];
+    function drawBarChart(barData, title, elementId) {
+        var minVal = 0;
+        var maxVal = 0;
+        for (var i = 0; i < barData.amountArray.length; i++) {
+            if (i === 0) {
+                minVal = barData.amountArray[i]; maxVal = barData.amountArray[i];
+            }
+            else {
+                if (minVal > barData.amountArray[i])
+                    minVal = barData.amountArray[i];
+                if (maxVal < barData.amountArray[i])
+                    maxVal = barData.amountArray[i];
+            }
+        }
+
+        var intvl = parseInt(maxVal / minVal);
+        var myConfig = {
+            "graphset": [{
+                "type": "bar",
+                "background-color": "white",
+
+                "plotarea": {
+                    "margin": "dynamic"
+                },
+                "title": {
+                    "text": title,
+                    "font-color": "#00335B",
+                    "font-size": "13px",
+                    "alpha": 1,
+                    "adjust-layout": true,
+                },
+                "plot": {
+                    "bars-space-left": 0.15,
+                    "bars-space-right": 0.15,
+                    "animation": {
+                        "effect": "ANIMATION_SLIDE_BOTTOM",
+                        "sequence": 0,
+                        "speed": 800,
+                        "delay": 800
+                    },
+                    //  "styles": barData.bgColorSeries,
+                    valueBox: {
+
+                        fontColor: "#00335B",
+                        fontSize: "8%",
+                        text: "%v",
+                        rules: [
+                            {
+                                rule: '%stack-top == 0',
+                                visible: 0
+                            }
+                        ]
+                    },
+                },
+                "scale-y": {
+                    "line-color": "#7E7E7E",
+                    "item": {
+                        "font-color": "#00335B"
+                    },
+                    "values": '"' + (minVal) + ":" + (maxVal + 5) + ":" + intvl + '"',
+                    "guide": {
+                        "visible": true
+                    },
+                    "label": {
+                        "text": 'Values',
+                        "font-family": "arial",
+                        "bold": true,
+                        "font-size": "16px",
+                        "font-color": "#00335B",
+                    },
+                },
+
+                "scaleX": {
+                    "values": barData.dateArray,
+                    "visible": false,
+                    "placement": "default",
+                    "tick": {
+                        "size": 58,
+                        "placement": "cross"
+                    },
+                    "itemsOverlap": true,
+                    "item": {
+                        "offsetY": -55
+                    }
+                },
+                "tooltip": {
+                    "visible": false
+                },
+                "crosshair-x": {
+                    "line-width": "100%",
+                    "alpha": 0.18,
+                    "plot-label": {
+                        "header-text": "%kv : %v",
+                        "font-size": "15px",
+                        "font-color": "#00335B",
+                        "text": " ",
+                        "padding": "4px",
+                        "border-radius": "5px"
+
+                    }
+                },
+                scaleX: {
+                    values: barData.dateArray,
+                    guide: {
+                        visible: false
+                    },
+                    item: {
+                        color: '#606060'
+                    },
+                    lineColor: '#C0D0E0',
+                    lineWidth: '1px',
+                    tick: {
+                        lineColor: '#C0D0E0',
+                        lineWidth: '1px'
+                    }
+                },
+                "series": [{
+                    "values": barData.amountArray,
+                    // values: [59.90, 41.30, 51.20, 48.40],
+                    "alpha": 0.95,
+                    "borderRadiusTopLeft": 0,
+                    "background-color": "#8993c7",
+
+                }]
+            }]
+        };
+
+        zingchart.render({
+            id: elementId,
+            data: myConfig,
+            height: 400,
+            width: '100%'
+        });
+    }
+
+    function pieGraph(jsonData, title, ele) {
+        let chartConfig = {
+            type: 'pie',
+            backgroundColor: '#2B313B',
+            title: {
+                text: title,
+                align: 'left',
+                fontColor: '#fff',
+                fontFamily: 'Open Sans',
+                fontSize: '25px',
+                offsetX: '10px',
+            },
+            //subtitle: {
+            //    text: 'June 2019',
+            //    align: 'left',
+            //    fontColor: '#8e99a9',
+            //    fontFamily: 'Open Sans',
+            //    fontSize: '16px',
+            //    offsetX: '10px',
+            //    offsetY: '10px'
+            //},
+            plot: {
+                tooltip: {
+                    text: "%t : %v",
+                    "background-color": "#00335B",
+                    "font-size": "15px",
+                    "font-color": "white",
+                    "border": "1px solid black",
+                    "padding": "5px 15px",
+                    "border-radius": "5px",
+                },
+                valueBox: {
+                    text: '%t\n%npv%',
+                    fontFamily: 'Open Sans',
+                    placement: 'out'
+                },
+                animation: {
+                    effect: 'ANIMATION_EXPAND_VERTICAL',
+                    method: 'ANIMATION_REGULAR_EASE_OUT',
+                    sequence: 'ANIMATION_BY_PLOT',
+                    speed: 500
+                },
+                borderColor: '#2B313B',
+                borderWidth: '5px'
+            },
+            plotarea: {
+                margin: '20 0 0 0'
+            },
+            series: jsonData
+        };
+        zingchart.render({
+            id: ele,
+            data: chartConfig,
+            height: '100%',
+            width: '100%',
+        });
+    }
+
+    function getFilteredData() {
+        var data = $("#frm").serializeArray();
+        $("#loader").show();
+        $.ajax({
+            url: "/chart/getFilteredData",
+            type: "POST",
+            data: data,
+            contenType: 'application/json; charset=utf-8',
+            success: function (resp) {
+                console.log(resp);
+                $("#loader").hide();
+                if (resp.status) {
+                    let i = 0;
+                    let count = resp.data.length;
+                    $(".dybodychartdata").html(null);
+                    if (count === 0) {
+                        let tr = '<tr><td colspan="3">Filtered data not available!! </td></tr>';
+                        $(".dybodychartdata").append(tr);
+                        return;
+                    }
+                    let chrtype = $("#ChartType").val();
+
+                    if (chrtype === "pie") {
+                        let mySeries = [];
+                        for (let a = i; a < count; a++) {
+                            mySeries.push({
+                                "values": [(resp.data[a].code)],
+                                "text": [resp.data[a].name]
+                            })
+                            let tr = '<tr><th>' + (a + 1) + '</th><th>' + resp.data[a].name + '</th><th>' + resp.data[a].code + '</th></tr>';
+                            $(".dybodychartdata").append(tr);
+                        }
+                        pieGraph(mySeries, 'Data from API', 'myChart');
+                    }
+                    if (chrtype === "bar") {
+                        let barData = [];
+                        let amountArray = [];
+                        let dateArray = [];
+                        for (let a = i; a < count; a++) {
+                            amountArray.push(resp.data[a].code);
+                            dateArray.push(resp.data[a].name);
+                            let tr = '<tr><th>' + (a + 1) + '</th><th>' + resp.data[a].name + '</th><th>' + resp.data[a].code + '</th></tr>';
+                            $(".dybodychartdata").append(tr);
+                        }
+
+                        barData = { amountArray: amountArray, dateArray: dateArray };
+                        drawBarChart(barData, 'Data from API', 'myChart');
+                    }
+                    if (chrtype === "line") {
+                        var valueSeries = [];
+                        var XAxisLabels = []
+                        for (let a = i; a < count; a++) {
+                            valueSeries.push(resp.data[a].code);
+                            XAxisLabels.push(resp.data[a].name);
+                            let tr = '<tr><th>' + (a + 1) + '</th><th>' + resp.data[a].name + '</th><th>' + resp.data[a].code + '</th></tr>';
+                            $(".dybodychartdata").append(tr);
+                        }
+                        var lineDataobj = {
+                            ValueSeries: valueSeries,
+                            Title: Data.Name,
+                            YTitle: Data.Y,
+                            XTitle: Data.X,
+                            XAxisLabels: XAxisLabels
+                        }
+                        drowLine(lineDataobj, 'myChart');
+                    }
+
+                    $("#tableData").show();
+
+                }
+                else {
+                    alert("Unable to filter data!!\nError: " + resp.data);
+                }
+            },
+            error: function (responce) {
+                console.log(responce.statusText);
+                alert('An error ocured while processing!!');
+                $("#loader").hide();
+            }
+        });
+    }
+
+
+    function drowLine(lineData, elementId) {
+        var min = Math.min.apply(null, lineData.ValueSeries);
+        var max = Math.max.apply(null, lineData.ValueSeries);
+        var myConfig =
+        {
+            "type": "line",
+            title: {
+                fontColor: "#00335B",
+                text: lineData.Title,
+                align: "center",
+                offsetX: 10,
+                fontSize: 14,
+                marginRight: 11,
+                "adjust-layout": true
+            },
+            "plotarea": {
+                "margin": "dynamic 45 60 dynamic",
+            },
+            "scale-x": {
+                "label": {
+                    "text": lineData.XTitle,
+                },
+                "labels": lineData.XAxisLabels
+            },
+            "scale-y": {
+                "values": (min - 10) + ":" + (max + 10) + ":10",
+                "line-color": "#f6f7f8",
+                "shadow": 0,
+                "guide": {
+                    "line-style": "dashed"
+                },
+                "label": {
+                    "text": lineData.YTitle,
+                    "bold": true,
+                    "font-size": "16px",
+                    "font-color": "#00335B",
+                },
+                "minor-ticks": 0,
+                "thousands-separator": ","
+            },
+            "crosshair-x": {
+                "line-color": "#efefef",
+                "plot-label": {
+                    "border-radius": "5px",
+                    "border-width": "1px",
+                    "border-color": "#f6f7f8",
+                    "padding": "10px",
+                    "font-weight": "bold"
+                },
+                "scale-label": {
+                    "font-color": "#000",
+                    "background-color": "#f6f7f8",
+                    "border-radius": "5px"
+                }
+            },
+            "tooltip": {
+                "visible": false
+            },
+            "plot": {
+                "highlight": true,
+                "tooltip-text": "%t views: %v<br>%k",
+                "shadow": 0,
+                "line-width": "2px",
+                "marker": {
+                    "type": "circle",
+                    "size": 3
+                },
+                "value-box": {
+
+                },
+                "highlight-state": {
+                    "line-width": 3
+                },
+                "animation": {
+                    "effect": 1,
+                    "sequence": 2,
+                    "speed": 100,
+                }
+            },
+            "series": [
+                {
+                    "values": lineData.ValueSeries,
+                    "text": lineData.YTitle,
+                    "line-color": "#007790",
+                    "legend-item": {
+                        "background-color": "#007790",
+                        "borderRadius": 5,
+                        "font-color": "white"
+                    },
+                    "legend-marker": {
+                        "visible": false
+                    },
+                    "marker": {
+                        "background-color": "#007790",
+                        "border-width": 1,
+                        "shadow": 0,
+                        "border-color": "#69dbf1"
+                    },
+                    "highlight-marker": {
+                        "size": 6,
+                        "background-color": "#007790",
+                    }
+                }
+            ]
+        };
+        zingchart.render({
+            id: elementId,
+            data: myConfig,
+            height: 400,
+            width: '100%'
+        });
+        zingchart.exec(elementId, 'setdata', {
+            data: myConfig
+        });
+    }
+</script>
+
